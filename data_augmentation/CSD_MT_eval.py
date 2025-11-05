@@ -4,6 +4,8 @@ import os.path as osp
 import numpy as np
 import torchvision.transforms as transforms
 from PIL import Image
+import mediapipe as mp
+import dlib
 
 from CSD_MT.options import Options
 from CSD_MT.model import CSD_MT
@@ -29,15 +31,29 @@ def crop_image(image):
     down_ratio = 0.15 / 0.85  # delta_size / face_size
     width_ratio = 0.2 / 0.85  # delta_size / face_size
 
-    image = Image.fromarray(image)
-    face = futils.dlib.detect(image)
+    mp_face_detection = mp.solutions.face_detection
+    face_detection = mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = face_detection.process(image_rgb)
 
-    if not face:
-        raise ValueError("No face !")
+    if not results.detections:
+        raise ValueError("No face detected in the image.")
 
-    face_on_image = face[0]
+    detection = results.detections[0]
+    bbox = detection.location_data.relative_bounding_box
 
-    image, face, crop_face = futils.dlib.crop(image, face_on_image, up_ratio, down_ratio, width_ratio)
+    h, w, _ = image_rgb.shape
+    x_min = int(bbox.xmin * w)
+    y_min = int(bbox.ymin * h)
+    box_w = int(bbox.width * w)
+    box_h = int(bbox.height * h)
+
+   
+    face_rect = dlib.rectangle(x_min, y_min, x_min + box_w, y_min + box_h)
+
+    image_pil = Image.fromarray(image_rgb)
+    image, face, crop_face = futils.dlib.crop(image_pil, face_rect, up_ratio, down_ratio, width_ratio)
+
     np_image = np.array(image)
     return np_image
 

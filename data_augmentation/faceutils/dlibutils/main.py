@@ -8,6 +8,7 @@ import dlib
 import cv2
 from concern.image import resize_by_max
 
+
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(osp.split(osp.realpath(__file__))[0] + '/lms.dat')
 
@@ -83,7 +84,7 @@ def crop(image: Image, face, up_ratio, down_ratio, width_ratio) -> (Image, 'face
 
 def crop_by_image_size(image: Image, face) -> (Image, 'face'):
     center = face.center()
-    width, height = image.size
+    width, height = image.shape[:2]
     if width > height:
         left = int(center.x - height / 2)
         right = int(center.x + height / 2)

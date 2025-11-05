@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 import CSD_MT_eval
 from tqdm import tqdm
+import time
 
 def get_makeup_transfer_results256(non_makeup_img, makeup_img):
     transfer_img = CSD_MT_eval.makeup_transfer256(non_makeup_img, makeup_img)
@@ -13,7 +14,6 @@ OUTPUT_DIR = r'D:\makeup-photos'
 
 def main():
     joker = cv2.imread('examples/joker.png')
-    joker = cv2.cvtColor(joker, cv2.COLOR_BGR2RGB)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -39,13 +39,16 @@ def main():
             source = cv2.imread(img_path)
             if source is None:
                 continue
-            source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
+            
 
             result = get_makeup_transfer_results256(source, joker)
             if result is None:
                 continue
 
-            output_path = os.path.join(output_person_dir, img_name)
+            timestamp = int(time.time() * 1000)  
+            name, ext = os.path.splitext(img_name)
+            new_name = f"{name}_{timestamp}{ext}"
+            output_path = os.path.join(output_person_dir, new_name)
             result_bgr = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
             cv2.imwrite(output_path, result_bgr)
 

@@ -37,7 +37,7 @@ def crop_image(image):
     results = face_detection.process(image_rgb)
 
     if not results.detections:
-        raise ValueError("No face detected in the image.")
+        return None
 
     detection = results.detections[0]
     bbox = detection.location_data.relative_bounding_box
@@ -111,8 +111,10 @@ def local_masks(opts,split_parse):
 
 
 def load_data_from_image(non_makeup_img, makeup_img,opts):
-    non_makeup_img=crop_image(non_makeup_img)
+    non_makeup_img=crop_image(non_makeup_img) 
     makeup_img = crop_image(makeup_img)
+    if non_makeup_img is None or makeup_img is None:
+        return None
     non_makeup_img=cv2.resize(non_makeup_img,(opts.resize_size,opts.resize_size))
     makeup_img = cv2.resize(makeup_img, (opts.resize_size, opts.resize_size))
     non_makeup_parse = get_face_parsing(non_makeup_img)
@@ -160,6 +162,9 @@ def load_data_from_image(non_makeup_img, makeup_img,opts):
 
 def makeup_transfer256(non_makeup_image, makeup_image):
     data=load_data_from_image(non_makeup_image, makeup_image, opts=opts)
+
+    if data is None:
+        return None
     with torch.no_grad():
         transfer_tensor=makeup_model.test_pair(data)
         transfer_img=transfer_tensor[0].cpu().float().numpy()

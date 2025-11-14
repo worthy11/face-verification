@@ -1,4 +1,5 @@
-data/*
+verification/data/*
+verification/models/*
 *.pth
 *.dat
 

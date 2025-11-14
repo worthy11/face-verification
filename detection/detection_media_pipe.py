@@ -4,7 +4,6 @@ import time
 import os
 import matplotlib.pyplot as plt
 
-
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 

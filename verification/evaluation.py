@@ -4,7 +4,7 @@ from keras.preprocessing import image
 from keras_vggface import utils
 from keras.models import load_model
 
-model = load_model('models/finetuned_vggface2.h5')
+model = load_model('models/finetuned_vggface2(2).h5')
 
 def verify_functionality(filepath):
     img = image.load_img(filepath, target_size=(224, 224))
@@ -39,8 +39,8 @@ def evaluate(dir):
 
             print(f"\rProcessing directory {folder} ({label+1}/13): {total}, Guessed: {guess}, Accuracy: {correct/total:.4f}", end="", flush=True)
 
-print("Accuracy on training data:")
-evaluate('data/train')
+# print("Accuracy on training data:")
+# evaluate('data/train')
 
 print("\nAccuracy on augmented data:")
 evaluate('data/eval')

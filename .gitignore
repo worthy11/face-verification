@@ -1,5 +1,6 @@
-verification/data/*
+data/*
 verification/models/*
+demo/videos/*
 *.pth
 *.dat
 

@@ -25,7 +25,7 @@ def create_resnet_backbone(input_shape=(224, 224, 3), embedding_dim=128):
         weights='imagenet',
         include_top=False,
         input_shape=input_shape,
-        pooling='avg'  # Global average pooling
+        pooling='avg'
     )
     
     for layer in base_model.layers[:-10]:
@@ -40,58 +40,11 @@ def create_resnet_backbone(input_shape=(224, 224, 3), embedding_dim=128):
     x = layers.Dense(256, activation='relu', name='fc2')(x)
     x = layers.BatchNormalization(name='bn2')(x)
     
-    embeddings = layers.Lambda(lambda x: tf.nn.l2_normalize(x, axis=1), name='embeddings')(x)
+    embeddings = layers.Lambda(lambda x: tf.nn.l2_normalize(x, axis=1), name='embed')(x)
     embeddings = layers.Dense(embedding_dim, name='embedding_output')(embeddings)
-    embeddings = layers.Lambda(lambda x: tf.nn.l2_normalize(x, axis=1), name='normalized_embeddings')(embeddings)
+    embeddings = layers.Lambda(lambda x: tf.nn.l2_normalize(x, axis=1), name='norma_embed')(embeddings)
     
     model = Model(inputs, embeddings, name='resnet_embedding_model')
-    return model
-
-
-def create_custom_cnn_backbone(input_shape=(224, 224, 3), embedding_dim=128):
-    inputs = Input(shape=input_shape, name='input')
-    
-    x = layers.Conv2D(64, (7, 7), strides=2, padding='same', name='conv1')(inputs)
-    x = layers.BatchNormalization(name='bn_conv1')(x)
-    x = layers.Activation('relu', name='relu_conv1')(x)
-    x = layers.MaxPooling2D((3, 3), strides=2, padding='same', name='pool1')(x)
-    
-    def conv_block(x, filters, block_name):
-        x = layers.Conv2D(filters, (3, 3), padding='same', name=f'{block_name}_conv1')(x)
-        x = layers.BatchNormalization(name=f'{block_name}_bn1')(x)
-        x = layers.Activation('relu', name=f'{block_name}_relu1')(x)
-        x = layers.Dropout(0.2, name=f'{block_name}_dropout1')(x)
-        
-        x = layers.Conv2D(filters, (3, 3), padding='same', name=f'{block_name}_conv2')(x)
-        x = layers.BatchNormalization(name=f'{block_name}_bn2')(x)
-        x = layers.Activation('relu', name=f'{block_name}_relu2')(x)
-        return x
-    
-    x = conv_block(x, 128, 'block1')
-    x = layers.MaxPooling2D((2, 2), name='pool2')(x)
-    
-    x = conv_block(x, 256, 'block2')
-    x = layers.MaxPooling2D((2, 2), name='pool3')(x)
-    
-    x = conv_block(x, 512, 'block3')
-    x = layers.MaxPooling2D((2, 2), name='pool4')(x)
-    
-    x = conv_block(x, 512, 'block4')
-    x = layers.MaxPooling2D((2, 2), name='pool5')(x)
-    
-    x = layers.GlobalAveragePooling2D(name='global_avg_pool')(x)
-    
-    x = layers.Dense(512, activation='relu', name='fc1')(x)
-    x = layers.BatchNormalization(name='bn_fc1')(x)
-    x = layers.Dropout(0.3, name='dropout_fc1')(x)
-    
-    x = layers.Dense(256, activation='relu', name='fc2')(x)
-    x = layers.BatchNormalization(name='bn_fc2')(x)
-    
-    embeddings = layers.Dense(embedding_dim, name='embedding_output')(x)
-    embeddings = layers.Lambda(lambda x: tf.nn.l2_normalize(x, axis=1), name='normalized_embeddings')(embeddings)
-    
-    model = Model(inputs, embeddings, name='custom_cnn_embedding_model')
     return model
 
 
@@ -216,8 +169,6 @@ class TripletGenerator(keras.utils.Sequence):
 def create_embedding_model(backbone_type='resnet', input_shape=(224, 224, 3), embedding_dim=128):
     if backbone_type == 'resnet':
         return create_resnet_backbone(input_shape, embedding_dim)
-    elif backbone_type == 'custom':
-        return create_custom_cnn_backbone(input_shape, embedding_dim)
     else:
         raise ValueError(f"Unknown backbone type: {backbone_type}. Choose 'resnet' or 'custom'.")
 
